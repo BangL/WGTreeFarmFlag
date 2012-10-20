@@ -19,10 +19,11 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  *
- * @author BangL
+ * @author BangL, mewin
  */
 public class PlayerListener implements Listener {
     private WGTreeFarmFlagPlugin plugin;
+    private boolean hasBlockRestricter;
 
     // Command flags
     public static final StateFlag FLAG_TREEFARM = new StateFlag("treefarm", true);
@@ -35,6 +36,8 @@ public class PlayerListener implements Listener {
 
         // Register events
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        
+        hasBlockRestricter = plugin.getServer().getPluginManager().getPlugin("WGBlockRestricter") != null;
 
     }
 
@@ -44,8 +47,9 @@ public class PlayerListener implements Listener {
         final WorldGuardPlugin wgp = plugin.getWGP();
         final Block block = event.getBlock();
         final Player player = event.getPlayer();
-
-        if (!wgp.getRegionManager(block.getWorld()).getApplicableRegions(block.getLocation()).allows(FLAG_TREEFARM)) {
+        
+        //lets block restricter handle it
+        if (!hasBlockRestricter && !wgp.getRegionManager(block.getWorld()).getApplicableRegions(block.getLocation()).allows(FLAG_TREEFARM)) {
             // treefarm is set to "deny"
             // so let's cancel this placement
             // an op/member/owner can still build, if treefarm is set to "allow".
@@ -104,12 +108,14 @@ public class PlayerListener implements Listener {
 
                 // Turn leaf to air
                 block.setType(Material.AIR);
-            } else {
+            } else if (!hasBlockRestricter || !com.mewin.WGBlockRestricter.Utils.blockAllowedAtLocation(wgp, material, loc)) {
                 // Any other block destroyed
                         
                 // Send Warning
                 final String msg = this.plugin.getConfig().getString("messages.block.blockdestroy");
                 player.sendMessage(ChatColor.RED + msg);
+            } else {
+                return;
             }
 
             event.setCancelled(true);

@@ -81,6 +81,7 @@ public class PlayerListener implements Listener {
 
             if (material == Material.LOG) {
                 // Log destroyed
+                byte data = block.getData();
 
                 // drop log
                 block.breakNaturally();
@@ -92,7 +93,7 @@ public class PlayerListener implements Listener {
                 if ((locUnder.getBlock().getType() == Material.DIRT)
                         || (locUnder.getBlock().getType() == Material.GRASS)) {
                     // Turn log to sapling
-                    block.setTypeIdAndData(Material.SAPLING.getId(), event.getBlock().getData(), false);
+                    block.setTypeIdAndData(Material.SAPLING.getId(), data, false);
                 } else {
                     // Turn log to air
                     block.setType(Material.AIR);

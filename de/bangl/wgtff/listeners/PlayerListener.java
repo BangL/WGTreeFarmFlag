@@ -15,7 +15,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
-import org.bukkit.inventory.ItemStack;
 
 /**
  *
@@ -49,7 +48,8 @@ public class PlayerListener implements Listener {
         final Player player = event.getPlayer();
         
         //lets block restricter handle it
-        if (!hasBlockRestricter && !wgp.getRegionManager(block.getWorld()).getApplicableRegions(block.getLocation()).allows(FLAG_TREEFARM)) {
+        if (!hasBlockRestricter
+                && !wgp.getRegionManager(block.getWorld()).getApplicableRegions(block.getLocation()).allows(FLAG_TREEFARM)) {
             // treefarm is set to "deny"
             // so let's cancel this placement
             // an op/member/owner can still build, if treefarm is set to "allow".
@@ -109,7 +109,8 @@ public class PlayerListener implements Listener {
 
                 // Turn leaf to air
                 block.setType(Material.AIR);
-            } else if (!hasBlockRestricter || !com.mewin.WGBlockRestricter.Utils.blockAllowedAtLocation(wgp, material, loc)) {
+            } else if (!hasBlockRestricter
+                    || !com.mewin.WGBlockRestricter.Utils.blockAllowedAtLocation(wgp, material, loc)) {
                 // Any other block destroyed
                         
                 // Send Warning

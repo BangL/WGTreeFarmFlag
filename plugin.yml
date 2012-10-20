@@ -1,6 +1,6 @@
 name: WGTreeFarmFlag
 version: 0.2
-description: '"WorldGuard" extension to add own region flags to plants and protects saplings where a tree gets destroyed and to block block placement inside of these regions even for op/canbuild.'
+description: '"WorldGuard" extension to plant and protect saplings where a tree gets destroyed and to block block placement inside of these regions even if player is op/can build.'
 author: BangL, mewin
 depend: [ WorldGuard, WGCustomFlags ]
 softdepend: [ WGBlockRestricter ]

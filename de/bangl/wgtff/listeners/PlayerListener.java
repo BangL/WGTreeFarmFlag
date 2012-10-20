@@ -83,7 +83,7 @@ public class PlayerListener implements Listener {
                 // Log destroyed
 
                 // drop log
-                world.dropItem(loc, new ItemStack(Material.LOG, 1, block.getData()));
+                block.breakNaturally();
 
                 final Location locUnder = event.getBlock().getLocation();
                 locUnder.setY(block.getY() - 1.0D);

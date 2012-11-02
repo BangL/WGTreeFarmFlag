@@ -67,7 +67,7 @@ public class WGTreeFarmFlagPlugin extends JavaPlugin {
         this.pluginWorldGuard = null;
         this.listenerPlayer = null;
 
-        saveConfig();
+        //saveConfig();
     }
 
 }

@@ -102,7 +102,7 @@ public class PlayerListener implements Listener {
                 byte data = block.getData();
 
                 // drop log
-                block.breakNaturally();
+                block.breakNaturally(player.getItemInHand());
 
                 final Location locUnder = event.getBlock().getLocation();
                 locUnder.setY(block.getY() - 1.0D);

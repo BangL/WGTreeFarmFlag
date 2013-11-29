@@ -22,6 +22,7 @@ import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.StateFlag.State;
 import de.bangl.wgtff.WGTreeFarmFlagPlugin;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -32,6 +33,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.inventory.ItemStack;
 
 /**
  *
@@ -77,6 +79,66 @@ public class PlayerListener implements Listener {
         }
     }
 
+    public ItemStack fixDurability(ItemStack item) {
+        ItemStack result = new ItemStack(item);
+        short dur = Short.valueOf(String.valueOf(item.getDurability() + 1));
+        short max = 0;
+        switch (item.getType()) {
+            case GOLD_AXE:
+            case GOLD_HOE:
+            case GOLD_SPADE:
+            case GOLD_PICKAXE:
+            case GOLD_SWORD:
+                max = 33;
+                break;
+            case WOOD_AXE:
+            case WOOD_HOE:
+            case WOOD_SPADE:
+            case WOOD_PICKAXE:
+            case WOOD_SWORD:
+                max = 60;
+                break;
+            case FISHING_ROD:
+                max = 65;
+                break;
+            case STONE_AXE:
+            case STONE_HOE:
+            case STONE_SPADE:
+            case STONE_PICKAXE:
+            case STONE_SWORD:
+                max = 132;
+                break;
+            case SHEARS:
+                max = 238;
+                break;
+            case IRON_AXE:
+            case IRON_HOE:
+            case IRON_SPADE:
+            case IRON_PICKAXE:
+            case IRON_SWORD:
+                max = 251;
+                break;
+            case BOW:
+                max = 385;
+                break;
+            case DIAMOND_AXE:
+            case DIAMOND_HOE:
+            case DIAMOND_SPADE:
+            case DIAMOND_PICKAXE:
+            case DIAMOND_SWORD:
+                max = 1562;
+                break;
+            default:
+                //result = item.getDurability();
+        }
+        if (max > 0 && dur >= max) {
+            result = null;
+        } else {
+            result.setDurability(dur);
+        }
+        return result;
+    }
+    
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
 
@@ -120,17 +182,23 @@ public class PlayerListener implements Listener {
                     // Turn log to air
                     block.setType(Material.AIR);
                 }
+                if (player.getGameMode() != GameMode.CREATIVE) {
+                    player.setItemInHand(fixDurability(player.getItemInHand()));
+                }
+            } else if (material == Material.LEAVES) {
+                // Leaf destroyed
+
+                // Turn leaf to air
+                block.setType(Material.AIR);
+                if (player.getGameMode() != GameMode.CREATIVE) {
+                    player.setItemInHand(fixDurability(player.getItemInHand()));
+                }
             } else if (material == Material.SAPLING) {
                 // Sapling destroyed.
 
                 // Send Warning
                 final String msg = this.plugin.getConfig().getString("messages.block.saplingdestroy");
                 player.sendMessage(ChatColor.RED + msg);
-            } else if (material == Material.LEAVES) {
-                // Leaf destroyed
-
-                // Turn leaf to air
-                block.setType(Material.AIR);
             } else if (!hasBlockRestricter
                     || !com.mewin.WGBlockRestricter.Utils.blockAllowedAtLocation(wgp, material, loc)) {
                 // Any other block destroyed

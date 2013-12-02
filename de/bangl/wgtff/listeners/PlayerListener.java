@@ -79,11 +79,14 @@ public class PlayerListener implements Listener {
         }
     }
 
-    public ItemStack fixDurability(ItemStack item) {
-        ItemStack result = new ItemStack(item);
-        short dur = item.getDurability();
+    public void damageItemInHand(Player player) {
+        if (player.getGameMode() == GameMode.CREATIVE) {
+            return;
+        }
+        ItemStack result = new ItemStack(player.getItemInHand());
+        short dur = result.getDurability();
         short max = 0;
-        switch (item.getType()) {
+        switch (result.getType()) {
             case GOLD_AXE:
             case GOLD_HOE:
             case GOLD_SPADE:
@@ -145,7 +148,7 @@ public class PlayerListener implements Listener {
         } else {
             result.setDurability(dur);
         }
-        return result;
+        player.setItemInHand(result);
     }
     
     @EventHandler
@@ -172,17 +175,18 @@ public class PlayerListener implements Listener {
                 // Log destroyed
                 byte data = block.getData();
 
-                // drop log
-                if (player.getItemInHand() == null) {
-                    block.breakNaturally();
-                } else {
-                    block.breakNaturally(player.getItemInHand());
+                // drop log if player is not in creative mode
+                if (player.getGameMode() == GameMode.CREATIVE) {
+                    if (player.getItemInHand() == null) {
+                        block.breakNaturally();
+                    } else {
+                        block.breakNaturally(player.getItemInHand());
+                    }
                 }
 
+                // this was a tree-base?
                 final Location locUnder = event.getBlock().getLocation();
                 locUnder.setY(block.getY() - 1.0D);
-
-                // this was a tree?
                 if ((locUnder.getBlock().getType() == Material.DIRT)
                         || (locUnder.getBlock().getType() == Material.GRASS)) {
                     // Turn log to sapling
@@ -191,17 +195,13 @@ public class PlayerListener implements Listener {
                     // Turn log to air
                     block.setType(Material.AIR);
                 }
-                if (player.getGameMode() != GameMode.CREATIVE) {
-                    player.setItemInHand(fixDurability(player.getItemInHand()));
-                }
+                damageItemInHand(player);
             } else if (material == Material.LEAVES) {
                 // Leaf destroyed
 
                 // Turn leaf to air
                 block.setType(Material.AIR);
-                if (player.getGameMode() != GameMode.CREATIVE) {
-                    player.setItemInHand(fixDurability(player.getItemInHand()));
-                }
+                damageItemInHand(player);
             } else if (material == Material.SAPLING) {
                 // Sapling destroyed.
 
@@ -218,7 +218,6 @@ public class PlayerListener implements Listener {
             } else {
                 return;
             }
-
             event.setCancelled(true);
         }
     }

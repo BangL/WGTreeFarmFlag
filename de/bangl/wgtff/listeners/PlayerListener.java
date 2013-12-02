@@ -176,7 +176,7 @@ public class PlayerListener implements Listener {
                 byte data = block.getData();
 
                 // drop log if player is not in creative mode
-                if (player.getGameMode() == GameMode.CREATIVE) {
+                if (player.getGameMode() != GameMode.CREATIVE) {
                     if (player.getItemInHand() == null) {
                         block.breakNaturally();
                     } else {

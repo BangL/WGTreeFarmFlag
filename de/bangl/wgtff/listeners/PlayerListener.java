@@ -81,7 +81,7 @@ public class PlayerListener implements Listener {
 
     public ItemStack fixDurability(ItemStack item) {
         ItemStack result = new ItemStack(item);
-        short dur = Short.valueOf(String.valueOf(item.getDurability() + 1));
+        short dur = item.getDurability();
         short max = 0;
         switch (item.getType()) {
             case GOLD_AXE:
@@ -90,6 +90,7 @@ public class PlayerListener implements Listener {
             case GOLD_PICKAXE:
             case GOLD_SWORD:
                 max = 33;
+                dur = Short.valueOf(String.valueOf(dur + 1));
                 break;
             case WOOD_AXE:
             case WOOD_HOE:
@@ -97,9 +98,11 @@ public class PlayerListener implements Listener {
             case WOOD_PICKAXE:
             case WOOD_SWORD:
                 max = 60;
+                dur = Short.valueOf(String.valueOf(dur + 1));
                 break;
             case FISHING_ROD:
                 max = 65;
+                dur = Short.valueOf(String.valueOf(dur + 1));
                 break;
             case STONE_AXE:
             case STONE_HOE:
@@ -107,9 +110,11 @@ public class PlayerListener implements Listener {
             case STONE_PICKAXE:
             case STONE_SWORD:
                 max = 132;
+                dur = Short.valueOf(String.valueOf(dur + 1));
                 break;
             case SHEARS:
                 max = 238;
+                dur = Short.valueOf(String.valueOf(dur + 1));
                 break;
             case IRON_AXE:
             case IRON_HOE:
@@ -117,9 +122,11 @@ public class PlayerListener implements Listener {
             case IRON_PICKAXE:
             case IRON_SWORD:
                 max = 251;
+                dur = Short.valueOf(String.valueOf(dur + 1));
                 break;
             case BOW:
                 max = 385;
+                dur = Short.valueOf(String.valueOf(dur + 1));
                 break;
             case DIAMOND_AXE:
             case DIAMOND_HOE:
@@ -127,9 +134,11 @@ public class PlayerListener implements Listener {
             case DIAMOND_PICKAXE:
             case DIAMOND_SWORD:
                 max = 1562;
+                dur = Short.valueOf(String.valueOf(dur + 1));
                 break;
             default:
-                //result = item.getDurability();
+                max = 0;
+                break;
         }
         if (max > 0 && dur >= max) {
             result = null;

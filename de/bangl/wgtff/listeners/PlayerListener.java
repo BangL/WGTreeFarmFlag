@@ -176,6 +176,10 @@ public class PlayerListener implements Listener {
                 // Log destroyed
                 byte data = block.getData();
 
+                if (material == Material.LOG_2) {
+                    data = (byte) (data + 4);
+                }
+
                 // drop log if player is not in creative mode
                 if (player.getGameMode() != GameMode.CREATIVE) {
                     if (player.getItemInHand() == null) {

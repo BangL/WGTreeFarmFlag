@@ -171,7 +171,8 @@ public class PlayerListener implements Listener {
                 || (!player.isOp()
                 && !wgp.canBuild(player, block)))) {
 
-            if (material == Material.LOG) {
+            if (material == Material.LOG
+                    || material == Material.LOG_2) {
                 // Log destroyed
                 byte data = block.getData();
 
@@ -196,7 +197,8 @@ public class PlayerListener implements Listener {
                     block.setType(Material.AIR);
                 }
                 damageItemInHand(player);
-            } else if (material == Material.LEAVES) {
+            } else if (material == Material.LEAVES
+                    || material == Material.LEAVES_2) {
                 // Leaf destroyed
 
                 // Turn leaf to air

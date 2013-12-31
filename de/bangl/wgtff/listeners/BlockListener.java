@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2012 BangL <henno.rickowski@googlemail.com>
- *                    mewin <mewin001@hotmail.de>
+ * Copyright (C) 2012-2013 BangL <henno.rickowski@googlemail.com>
+ *                         mewin <mewin001@hotmail.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
 package de.bangl.wgtff.listeners;
 
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.StateFlag.State;
+import de.bangl.wgtff.Utils;
 import de.bangl.wgtff.WGTreeFarmFlagPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -27,6 +27,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.entity.NPC;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,28 +38,17 @@ import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- *
  * @author BangL <henno.rickowski@googlemail.com>
  * @author mewin <mewin001@hotmail.de>
  */
-public class PlayerListener implements Listener {
+public class BlockListener implements Listener {
     private WGTreeFarmFlagPlugin plugin;
-    private boolean hasBlockRestricter;
 
-    // Command flags
-    public static final StateFlag FLAG_TREEFARM = new StateFlag("treefarm", true);
-
-    public PlayerListener(WGTreeFarmFlagPlugin plugin) {
+    public BlockListener(WGTreeFarmFlagPlugin plugin) {
         this.plugin = plugin;
-
-        // Register custom flags
-        plugin.getWGCFP().addCustomFlag(FLAG_TREEFARM);
 
         // Register events
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        
-        hasBlockRestricter = plugin.getServer().getPluginManager().getPlugin("WGBlockRestricter") != null;
-
     }
 
     @EventHandler
@@ -68,8 +59,8 @@ public class PlayerListener implements Listener {
         final Player player = event.getPlayer();
         
         //lets block restricter handle it
-        if (!hasBlockRestricter
-                && !wgp.getRegionManager(block.getWorld()).getApplicableRegions(block.getLocation()).allows(FLAG_TREEFARM)) {
+        if (!plugin.hasBlockRestricter()
+                && !wgp.getRegionManager(block.getWorld()).getApplicableRegions(block.getLocation()).allows(plugin.FLAG_TREEFARM)) {
             // treefarm is set to "deny"
             // so let's cancel this placement
             // an op/member/owner can still build, if treefarm is set to "allow".
@@ -79,78 +70,6 @@ public class PlayerListener implements Listener {
         }
     }
 
-    public void damageItemInHand(Player player) {
-        if (player.getGameMode() == GameMode.CREATIVE) {
-            return;
-        }
-        ItemStack result = new ItemStack(player.getItemInHand());
-        short dur = result.getDurability();
-        short max = 0;
-        switch (result.getType()) {
-            case GOLD_AXE:
-            case GOLD_HOE:
-            case GOLD_SPADE:
-            case GOLD_PICKAXE:
-            case GOLD_SWORD:
-                max = 33;
-                dur = Short.valueOf(String.valueOf(dur + 1));
-                break;
-            case WOOD_AXE:
-            case WOOD_HOE:
-            case WOOD_SPADE:
-            case WOOD_PICKAXE:
-            case WOOD_SWORD:
-                max = 60;
-                dur = Short.valueOf(String.valueOf(dur + 1));
-                break;
-            case FISHING_ROD:
-                max = 65;
-                dur = Short.valueOf(String.valueOf(dur + 1));
-                break;
-            case STONE_AXE:
-            case STONE_HOE:
-            case STONE_SPADE:
-            case STONE_PICKAXE:
-            case STONE_SWORD:
-                max = 132;
-                dur = Short.valueOf(String.valueOf(dur + 1));
-                break;
-            case SHEARS:
-                max = 238;
-                dur = Short.valueOf(String.valueOf(dur + 1));
-                break;
-            case IRON_AXE:
-            case IRON_HOE:
-            case IRON_SPADE:
-            case IRON_PICKAXE:
-            case IRON_SWORD:
-                max = 251;
-                dur = Short.valueOf(String.valueOf(dur + 1));
-                break;
-            case BOW:
-                max = 385;
-                dur = Short.valueOf(String.valueOf(dur + 1));
-                break;
-            case DIAMOND_AXE:
-            case DIAMOND_HOE:
-            case DIAMOND_SPADE:
-            case DIAMOND_PICKAXE:
-            case DIAMOND_SWORD:
-                max = 1562;
-                dur = Short.valueOf(String.valueOf(dur + 1));
-                break;
-            default:
-                max = 0;
-                break;
-        }
-        if (max > 0 && dur >= max) {
-            result = null;
-        } else {
-            result.setDurability(dur);
-        }
-        player.setItemInHand(result);
-    }
-    
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
 
@@ -160,7 +79,7 @@ public class PlayerListener implements Listener {
         final World world = block.getWorld();
         final Player player = event.getPlayer();
         final Material material = block.getType();
-        final State state = wgp.getRegionManager(world).getApplicableRegions(loc).getFlag(FLAG_TREEFARM);
+        final State state = wgp.getRegionManager(world).getApplicableRegions(loc).getFlag(plugin.FLAG_TREEFARM);
 
         // handle if ((allowed treefarm region
         // and player is not op
@@ -173,23 +92,52 @@ public class PlayerListener implements Listener {
 
             if (material == Material.LOG
                     || material == Material.LOG_2) {
-                // Log destroyed
-                byte data = block.getData();
+                // --- Log destroyed
 
+                byte data = block.getData();
+                BlockState blockState = block.getState();
+
+                // Support for new wood types of MC1.7
+                // The new wood types would have 0 and 1 as data value,
+                // but their sapling data values are 4 and 5 instead.
+                // so simply increase by 4 if its one of the new wood types
                 if (material == Material.LOG_2) {
-                    data = (byte) (data + 4);
+                    data += 4;
                 }
 
-                // drop log if player is not in creative mode
-                if (player.getGameMode() != GameMode.CREATIVE) {
-                    if (player.getItemInHand() == null) {
+                // if player is not an npc and not in creative mode...
+                if (!player.hasMetadata("NPC") && !(player instanceof NPC) && player.getGameMode() != GameMode.CREATIVE) {
+
+                    ItemStack heldItem = player.getItemInHand();
+
+                    // Drop Log based on the item in hand
+                    if (heldItem == null) {
                         block.breakNaturally();
                     } else {
-                        block.breakNaturally(player.getItemInHand());
+                        block.breakNaturally(heldItem);
+                    }
+
+                    // Add damage to the item in hand
+                    Utils.damageItemInHand(player);
+
+                    // mcMMO support
+                    if (plugin.hasMcMMO()
+                            && plugin.getConfig().getBoolean("settings.mcmmo-leveling")
+                            && com.gmail.nossr50.util.Permissions.skillEnabled(player,
+                            com.gmail.nossr50.datatypes.skills.SkillType.WOODCUTTING)) {
+
+                        com.gmail.nossr50.skills.woodcutting.WoodcuttingManager woodcuttingManager
+                                = com.gmail.nossr50.util.player.UserManager.getPlayer(player).getWoodcuttingManager();
+
+                        if (woodcuttingManager.canUseTreeFeller(heldItem)) {
+                            woodcuttingManager.processTreeFeller(blockState);
+                        } else {
+                            woodcuttingManager.woodcuttingBlockCheck(blockState);
+                        }
                     }
                 }
 
-                // this was a tree-base?
+                // was this a tree-base?
                 final Location locUnder = event.getBlock().getLocation();
                 locUnder.setY(block.getY() - 1.0D);
                 if ((locUnder.getBlock().getType() == Material.DIRT)
@@ -200,25 +148,18 @@ public class PlayerListener implements Listener {
                     // Turn log to air
                     block.setType(Material.AIR);
                 }
-                damageItemInHand(player);
             } else if (material == Material.LEAVES
                     || material == Material.LEAVES_2) {
-                // Leaf destroyed
-
-                // Turn leaf to air
+                // --- Leaf destroyed
                 block.setType(Material.AIR);
-                damageItemInHand(player);
+                Utils.damageItemInHand(player);
             } else if (material == Material.SAPLING) {
-                // Sapling destroyed.
-
-                // Send Warning
+                // --- Sapling destroyed.
                 final String msg = this.plugin.getConfig().getString("messages.block.saplingdestroy");
                 player.sendMessage(ChatColor.RED + msg);
-            } else if (!hasBlockRestricter
+            } else if (!plugin.hasBlockRestricter()
                     || !com.mewin.WGBlockRestricter.Utils.blockAllowedAtLocation(wgp, material, loc)) {
-                // Any other block destroyed
-                        
-                // Send Warning
+                // --- Any other block destroyed
                 final String msg = this.plugin.getConfig().getString("messages.block.blockdestroy");
                 player.sendMessage(ChatColor.RED + msg);
             } else {
@@ -236,7 +177,7 @@ public class PlayerListener implements Listener {
         final World world = block.getWorld();
 
         // Cancel if treefarm region
-        if (plugin.getWGP().getRegionManager(world).getApplicableRegions(loc).getFlag(FLAG_TREEFARM) != null) {
+        if (plugin.getWGP().getRegionManager(world).getApplicableRegions(loc).getFlag(plugin.FLAG_TREEFARM) != null) {
             // turn leave to air
             block.setType(Material.AIR);
             event.setCancelled(true);

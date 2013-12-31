@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 BangL <henno.rickowski@googlemail.com>
+ * Copyright (C) 2012-2013 BangL <henno.rickowski@googlemail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,14 @@ package de.bangl.wgtff;
 
 import com.mewin.WGCustomFlags.WGCustomFlagsPlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import de.bangl.wgtff.listeners.PlayerListener;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import de.bangl.wgtff.listeners.BlockListener;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- *
  * @author BangL <henno.rickowski@googlemail.com>
  */
 public class WGTreeFarmFlagPlugin extends JavaPlugin {
@@ -30,44 +33,75 @@ public class WGTreeFarmFlagPlugin extends JavaPlugin {
     // Plugins
     private WGCustomFlagsPlugin pluginWGCustomFlags;
     private WorldGuardPlugin pluginWorldGuard;
+    private boolean hasBlockRestricter;
+    private boolean hasMcMMO;
+
+    // Flags
+    public static final StateFlag FLAG_TREEFARM = new StateFlag("treefarm", true);
 
     // Listeners
-    private PlayerListener listenerPlayer;
-
-    public WGCustomFlagsPlugin getWGCFP() {
-        return pluginWGCustomFlags;
-    }
-
-    public WorldGuardPlugin getWGP() {
-        return pluginWorldGuard;
-    }
+    private BlockListener listenerBlock;
 
     @Override
     public void onEnable() {
-
         // Load config
         Utils.loadConfig(this);
 
-        // Init WorldGuard
+        // Get plugins
         this.pluginWorldGuard = Utils.getWorldGuard(this);
-
-        // Init and register custom flags
         this.pluginWGCustomFlags = Utils.getWGCustomFlags(this);
+        hasBlockRestricter = this.getServer().getPluginManager().getPlugin("WGBlockRestricter") != null;
+        hasMcMMO = this.getServer().getPluginManager().getPlugin("mcMMO") != null;
 
-        // Register all listeners
-        this.listenerPlayer = new PlayerListener(this);
-        
+        // Register flag
+        this.pluginWGCustomFlags.addCustomFlag(FLAG_TREEFARM);
+
+        // Register listeners
+        this.listenerBlock = new BlockListener(this);
     }
 
     @Override
     public void onDisable() {
-
         // we nullify all vars, cause it could be a server reload and we don't wanna leave trash in our expensive RAM.
         this.pluginWGCustomFlags = null;
         this.pluginWorldGuard = null;
-        this.listenerPlayer = null;
-
-        //saveConfig();
+        HandlerList.unregisterAll(this.listenerBlock);
+        this.listenerBlock = null;
+        this.hasBlockRestricter = false;
+        this.hasMcMMO = false;
     }
 
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getLabel().equalsIgnoreCase("treefarm")) {
+            if (args != null
+                    && args.length == 1
+                    && args[0].equalsIgnoreCase("reload")) {
+
+                // Load config
+                this.reloadConfig();
+                Utils.loadConfig(this);
+
+                sender.sendMessage("Tree farm config reloaded.");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasBlockRestricter() {
+        return this.hasBlockRestricter;
+    }
+
+    public boolean hasMcMMO() {
+        return this.hasMcMMO;
+    }
+
+    public WGCustomFlagsPlugin getWGCFP() {
+        return this.pluginWGCustomFlags;
+    }
+
+    public WorldGuardPlugin getWGP() {
+        return this.pluginWorldGuard;
+    }
 }

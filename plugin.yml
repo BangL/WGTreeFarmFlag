@@ -1,8 +1,18 @@
 name: WGTreeFarmFlag
 main: de.bangl.wgtff.WGTreeFarmFlagPlugin
 description: WorldGuard extension to plant and protect saplings where a tree gets destroyed and to block block placement inside of these regions even if player is op/can build.
-version: 1.4
+version: 1.5
 
 authors: [ BangL, mewin ]
 depend: [ WorldGuard, WGCustomFlags ]
-softdepend: [ WorldEdit, WGBlockRestricter ]
+softdepend: [ WorldEdit, WGBlockRestricter, mcMMO ]
+
+commands:
+  treefarm:
+    usage: /treefarm reload
+    description: Reload the plugin config
+    permission: treefarm.reload
+
+permissions:
+  treefarm.reload:
+    default: op

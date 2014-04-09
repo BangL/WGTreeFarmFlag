@@ -5,7 +5,7 @@ version: 1.6
 
 authors: [ BangL, mewin ]
 depend: [ WorldGuard, WGCustomFlags ]
-softdepend: [ WorldEdit, WGBlockRestricter, mcMMO ]
+softdepend: [ WorldEdit, WGBlockRestricter, mcMMO, QwickTree ]
 
 commands:
   treefarm:

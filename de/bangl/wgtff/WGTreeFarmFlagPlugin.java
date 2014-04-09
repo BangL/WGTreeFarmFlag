@@ -35,6 +35,7 @@ public class WGTreeFarmFlagPlugin extends JavaPlugin {
     private WorldGuardPlugin pluginWorldGuard;
     private boolean hasBlockRestricter;
     private boolean hasMcMMO;
+    private boolean hasQwickTree;
 
     // Flags
     public static final StateFlag FLAG_TREEFARM = new StateFlag("treefarm", true);
@@ -52,6 +53,7 @@ public class WGTreeFarmFlagPlugin extends JavaPlugin {
         this.pluginWGCustomFlags = Utils.getWGCustomFlags(this);
         hasBlockRestricter = this.getServer().getPluginManager().getPlugin("WGBlockRestricter") != null;
         hasMcMMO = this.getServer().getPluginManager().getPlugin("mcMMO") != null;
+        hasQwickTree = this.getServer().getPluginManager().getPlugin("QwickTree") != null;
 
         // Register flag
         this.pluginWGCustomFlags.addCustomFlag(FLAG_TREEFARM);
@@ -69,6 +71,7 @@ public class WGTreeFarmFlagPlugin extends JavaPlugin {
         this.listenerBlock = null;
         this.hasBlockRestricter = false;
         this.hasMcMMO = false;
+        this.hasQwickTree = false;
     }
 
     @Override
@@ -95,6 +98,10 @@ public class WGTreeFarmFlagPlugin extends JavaPlugin {
 
     public boolean hasMcMMO() {
         return this.hasMcMMO;
+    }
+
+    public boolean hasQwickTree() {
+        return this.hasQwickTree;
     }
 
     public WGCustomFlagsPlugin getWGCFP() {

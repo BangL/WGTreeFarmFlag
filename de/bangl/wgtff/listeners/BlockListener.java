@@ -90,6 +90,8 @@ public class BlockListener implements Listener {
                 || (!player.isOp()
                 && !wgp.canBuild(player, block)))) {
 
+            ItemStack heldItem = player.getItemInHand();
+
             if (material == Material.LOG
                     || material == Material.LOG_2) {
                 // --- Log destroyed
@@ -108,8 +110,6 @@ public class BlockListener implements Listener {
                 // if player is not an npc and not in creative mode...
                 if (!player.hasMetadata("NPC") && !(player instanceof NPC) && player.getGameMode() != GameMode.CREATIVE) {
 
-                    ItemStack heldItem = player.getItemInHand();
-
                     // Drop Log based on the item in hand
                     if (heldItem == null) {
                         block.breakNaturally();
@@ -126,13 +126,21 @@ public class BlockListener implements Listener {
                             && com.gmail.nossr50.util.Permissions.skillEnabled(player,
                             com.gmail.nossr50.datatypes.skills.SkillType.WOODCUTTING)) {
 
-                        com.gmail.nossr50.skills.woodcutting.WoodcuttingManager woodcuttingManager
+                        final com.gmail.nossr50.skills.woodcutting.WoodcuttingManager wcManager
                                 = com.gmail.nossr50.util.player.UserManager.getPlayer(player).getWoodcuttingManager();
 
-                        if (woodcuttingManager.canUseTreeFeller(heldItem)) {
-                            woodcuttingManager.processTreeFeller(blockState);
+                        if (wcManager.canUseTreeFeller(heldItem)) {
+                            wcManager.processTreeFeller(blockState);
                         } else {
-                            woodcuttingManager.woodcuttingBlockCheck(blockState);
+                            wcManager.woodcuttingBlockCheck(blockState);
+                        }
+                    }
+
+                    if (plugin.hasQwickTree()
+                            && plugin.getConfig().getBoolean("settings.settings.qwick-tree-chopping")) {
+                        final uk.co.gorbb.QwickTree.Tree.Tree tree = uk.co.gorbb.QwickTree.Tree.TreeManager.getInstance().getType(block.getTypeId(), block.getData());
+                        if (tree.isEnabled()) {
+                            tree.Chop(player, block);
                         }
                     }
                 }
@@ -151,7 +159,12 @@ public class BlockListener implements Listener {
             } else if (material == Material.LEAVES
                     || material == Material.LEAVES_2) {
                 // --- Leaf destroyed
-                block.setType(Material.AIR);
+                if (plugin.getConfig().getBoolean("settings.allow-shears")
+                        && heldItem.getType() == Material.SHEARS) {
+                    block.breakNaturally(heldItem);
+                } else {
+                    block.setType(Material.AIR);
+                }
                 Utils.damageItemInHand(player);
             } else if (material == Material.SAPLING) {
                 // --- Sapling destroyed.
@@ -176,8 +189,9 @@ public class BlockListener implements Listener {
         final Location loc = block.getLocation();
         final World world = block.getWorld();
 
-        // Cancel if treefarm region
-        if (plugin.getWGP().getRegionManager(world).getApplicableRegions(loc).getFlag(plugin.FLAG_TREEFARM) != null) {
+        // Cancel if apples not allowed and treefarm region
+        if (!plugin.getConfig().getBoolean("settings.allow-apples")
+                && plugin.getWGP().getRegionManager(world).getApplicableRegions(loc).getFlag(plugin.FLAG_TREEFARM) != null) {
             // turn leave to air
             block.setType(Material.AIR);
             event.setCancelled(true);

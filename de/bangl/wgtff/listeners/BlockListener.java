@@ -21,6 +21,7 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.StateFlag.State;
 import de.bangl.wgtff.Utils;
 import de.bangl.wgtff.WGTreeFarmFlagPlugin;
+import java.util.Random;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -137,7 +138,7 @@ public class BlockListener implements Listener {
                     }
 
                     if (plugin.hasQwickTree()
-                            && plugin.getConfig().getBoolean("settings.settings.qwick-tree-chopping")) {
+                            && plugin.getConfig().getBoolean("settings.qwick-tree-chopping")) {
                         final uk.co.gorbb.QwickTree.Tree.Tree tree = uk.co.gorbb.QwickTree.Tree.TreeManager.getInstance().getType(block.getTypeId(), block.getData());
                         if (tree.isEnabled()) {
                             tree.Chop(player, block);
@@ -189,9 +190,14 @@ public class BlockListener implements Listener {
         final Location loc = block.getLocation();
         final World world = block.getWorld();
 
-        // Cancel if apples not allowed and treefarm region
-        if (!plugin.getConfig().getBoolean("settings.allow-apples")
-                && plugin.getWGP().getRegionManager(world).getApplicableRegions(loc).getFlag(plugin.FLAG_TREEFARM) != null) {
+        // Cancel if treefarm region
+        if (plugin.getWGP().getRegionManager(world).getApplicableRegions(loc).getFlag(plugin.FLAG_TREEFARM) != null) {
+
+            // Maybe drop an apple?
+            if ((new Random()).nextInt(100) <= plugin.getConfig().getInt("settings.apple-chance")) {
+                final ItemStack apple = new ItemStack(Material.APPLE, 1);
+                world.dropItem(loc, apple);
+            }
             // turn leave to air
             block.setType(Material.AIR);
             event.setCancelled(true);

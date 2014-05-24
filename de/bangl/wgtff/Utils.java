@@ -122,7 +122,7 @@ public class Utils {
     public static void loadConfig(WGTreeFarmFlagPlugin plugin) {
         plugin.getConfig().addDefault("settings.mcmmo-leveling", false);
         plugin.getConfig().addDefault("settings.qwick-tree-chopping", false);
-        plugin.getConfig().addDefault("settings.allow-apples", false);
+        plugin.getConfig().addDefault("settings.apple-chance", 5);
         plugin.getConfig().addDefault("settings.allow-shears", false);
         plugin.getConfig().addDefault("messages.block.saplingdestroy", "Let them grow!");
         plugin.getConfig().addDefault("messages.block.blockplace", "This is a treefarm. You can't build here.");
